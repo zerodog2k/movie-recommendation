@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Sign Up | Movie Recommendation System</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="Create an account to save your favorite movies and get personalized recommendations.">
+  
+  <link href="https://fonts.googleapis.com/css?family=IBM+Plex+Sans&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='style.css') }}">
+</head>
+
+<body id="content" style="font-family: 'Noto Sans JP', sans-serif;">
+  <div class="ml-container">
+    <center>
+      <h1>Join Us Today</h1>
+      <p style="color: hsl(var(--foreground)); opacity: 0.8; margin-bottom: 2rem;">Create an account to unlock your personalized movie journey</p>
+    </center>
+
+    <div class="form-group" style="max-width: 400px; margin: 0 auto;">
+      <div id="clientError" class="alert alert-danger" role="alert" style="margin-bottom: 1.5rem; display: none;"></div>
+      
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, message in messages %}
+            {% if category in ['signup_error', 'signup_success'] %}
+            <div class="alert alert-{{ 'danger' if category == 'signup_error' else 'success' }}" role="alert" style="margin-bottom: 1.5rem;">
+              {{ message }}
+            </div>
+            {% endif %}
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+
+      <form method="POST" action="{{ url_for('signup') }}" id="signupForm" onsubmit="return validateForm()">
+        <div class="form-group" style="margin-bottom: 1.5rem;">
+          <input type="text" name="name" id="name" class="form-control" placeholder="Full Name" 
+                 value="{{ request.form.get('name', '') }}"
+                 style="background-color: rgba(255,255,255,0.1); border: 1px solid hsl(var(--border)); color: hsl(var(--foreground)); padding: 12px 20px; border-radius: 8px;" required>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 1.5rem;">
+          <input type="email" name="email" id="email" class="form-control" placeholder="Email Address" 
+                 value="{{ request.form.get('email', '') }}"
+                 style="background-color: rgba(255,255,255,0.1); border: 1px solid hsl(var(--border)); color: hsl(var(--foreground)); padding: 12px 20px; border-radius: 8px;" required>
+        </div>
+        
+        <div class="form-group" style="margin-bottom: 1.5rem; position: relative;">
+          <input type="password" name="password" id="password" class="form-control" placeholder="Password (min. 6 characters)" 
+                 style="background-color: rgba(255,255,255,0.1); border: 1px solid hsl(var(--border)); color: hsl(var(--foreground)); padding: 12px 20px; border-radius: 8px; padding-right: 50px;" minlength="6" required>
+          <span onclick="togglePassword('password', this)" style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); cursor: pointer; color: hsl(var(--foreground)); opacity: 0.6;">
+            <i class="fa-solid fa-eye"></i>
+          </span>
+        </div>
+        
+        <div id="passwordHints" style="margin-top: -10px; margin-bottom: 15px; font-size: 0.85rem;">
+          <span id="hintUpper" style="color: #ef4444;">• One uppercase letter</span><br>
+          <span id="hintNumber" style="color: #ef4444;">• One number</span><br>
+          <span id="hintSpecial" style="color: #ef4444;">• One special character (!@#$%^&*)</span>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 1.5rem; position: relative;">
+          <input type="password" name="confirm_password" id="confirm_password" class="form-control" placeholder="Confirm Password" 
+                 style="background-color: rgba(255,255,255,0.1); border: 1px solid hsl(var(--border)); color: hsl(var(--foreground)); padding: 12px 20px; border-radius: 8px; padding-right: 50px;" required>
+          <span onclick="togglePassword('confirm_password', this)" style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); cursor: pointer; color: hsl(var(--foreground)); opacity: 0.6;">
+            <i class="fa-solid fa-eye"></i>
+          </span>
+        </div>
+
+        <button type="submit" class="btn movie-button" style="width: 100%; margin-top: 1rem;">
+          Create Account
+        </button>
+      </form>
+
+      <div style="text-align: center; margin-top: 2rem;">
+        <p style="color: hsl(var(--foreground)); opacity: 0.7;">
+          Already have an account? 
+          <a href="{{ url_for('login') }}" style="color: hsl(var(--primary)); text-decoration: none; font-weight: 600;">Login</a>
+        </p>
+        <p style="margin-top: 1rem;">
+          <a href="{{ url_for('home') }}" style="color: hsl(var(--foreground)); opacity: 0.6; text-decoration: none;">← Back to Home</a>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script>
+    function togglePassword(inputId, icon) {
+      const input = document.getElementById(inputId);
+      const iconElement = icon.querySelector('i');
+      if (input.type === 'password') {
+        input.type = 'text';
+        iconElement.classList.remove('fa-eye');
+        iconElement.classList.add('fa-eye-slash');
+      } else {
+        input.type = 'password';
+        iconElement.classList.remove('fa-eye-slash');
+        iconElement.classList.add('fa-eye');
+      }
+    }
+
+    // Real-time password validation hints
+    document.getElementById('password').addEventListener('input', function() {
+      const password = this.value;
+      const hasUpper = /[A-Z]/.test(password);
+      const hasNumber = /[0-9]/.test(password);
+      const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+      
+      document.getElementById('hintUpper').style.color = hasUpper ? '#22c55e' : '#ef4444';
+      document.getElementById('hintNumber').style.color = hasNumber ? '#22c55e' : '#ef4444';
+      document.getElementById('hintSpecial').style.color = hasSpecial ? '#22c55e' : '#ef4444';
+    });
+
+    function validateForm() {
+      const password = document.getElementById('password').value;
+      const confirmPassword = document.getElementById('confirm_password').value;
+      const errorDiv = document.getElementById('clientError');
+      
+      // Check password length
+      if (password.length < 6) {
+        showError('Password must be at least 6 characters long');
+        clearPasswords();
+        return false;
+      }
+      
+      // Check uppercase
+      if (!/[A-Z]/.test(password)) {
+        showError('Password must contain at least one uppercase letter');
+        clearPasswords();
+        return false;
+      }
+      
+      // Check number
+      if (!/[0-9]/.test(password)) {
+        showError('Password must contain at least one number');
+        clearPasswords();
+        return false;
+      }
+      
+      // Check special character
+      if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+        showError('Password must contain at least one special character (!@#$%^&*(),.?":{}|<>)');
+        clearPasswords();
+        return false;
+      }
+      
+      // Check passwords match
+      if (password !== confirmPassword) {
+        showError('Passwords do not match');
+        clearPasswords();
+        return false;
+      }
+      
+      return true;
+    }
+
+    function showError(message) {
+      const errorDiv = document.getElementById('clientError');
+      errorDiv.textContent = message;
+      errorDiv.style.display = 'block';
+    }
+
+    function clearPasswords() {
+      document.getElementById('password').value = '';
+      document.getElementById('confirm_password').value = '';
+      // Reset hints
+      document.getElementById('hintUpper').style.color = '#ef4444';
+      document.getElementById('hintNumber').style.color = '#ef4444';
+      document.getElementById('hintSpecial').style.color = '#ef4444';
+    }
+  </script>
+</body>
+</html>
